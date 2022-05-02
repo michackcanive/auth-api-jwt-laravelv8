@@ -9,6 +9,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Exceptions\JWTException;
+use Tymon\JWTAuth\Exceptions\TokenBlacklistedException;
+use Tymon\JWTAuth\Exceptions\TokenExpiredException;
 use Tymon\JWTAuth\Facades\JWTAuth as FacadesJWTAuth;
 
 class AuthControllerController extends Controller
@@ -16,7 +18,7 @@ class AuthControllerController extends Controller
 
     public function authenticate(Request $request)
     {
-      $user= $this->verificador_thoken();
+        $user = $this->verificador_thoken();
         $credentials = $request->only('email', 'password');
         $validator = Validator::make($credentials, [
             'email' => 'required|string|max:255',
@@ -30,12 +32,11 @@ class AuthControllerController extends Controller
             if (!$token = FacadesJWTAuth::attempt($credentials)) {
                 return response()->json(['error' => true, 'status' => 'Dados incorretos'], 400);
             }
-
         } catch (JWTException $e) {
             return response()->json(['error' => 'Não foi possível criar token'], 500);
         }
 
-        return response()->json(['erro' => false,'status' => 'certo', 'token' => $token], 200);
+        return response()->json(['erro' => false, 'status' => 'certo', 'token' => $token], 200);
     }
 
     public function register(Request $request)
@@ -126,6 +127,61 @@ class AuthControllerController extends Controller
             return response()->json(['token inválido'], 404);
         } catch (\Tymon\JWTAuth\Exceptions\JWTException $e) {
             return response()->json(['token ausente'], 404);
+        }
+    }
+    /**
+     * Refresh a token.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function refresh(Request $request)
+    {
+
+        try {
+
+            $token = FacadesJWTAuth::getToken();
+            $token = FacadesJWTAuth::refresh($token);
+            // $user = FacadesJWTAuth::parseToken()->authenticate();
+            return response()->json([
+                'success' => false,
+                'message' => 'sucess',
+                'token' => $token,
+                //'user' => $user
+            ]);
+        } catch (TokenBlacklistedException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'lista negra 😑'
+            ]);
+        } catch (\Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {
+            return response()->json(['erro' => true, 'status' => 'token inválido'], 404);
+        } catch (\Tymon\JWTAuth\Exceptions\JWTException $e) {
+            return response()->json(['erro' => true, 'status' => 'token ausente'], 404);
+        }
+        //return $this->createNewToken($request->token);
+    }
+
+    public function logout(Request $request)
+    {
+
+        try {
+            auth()->logout();
+
+            //FacadesJWTAuth::;
+            return response()->json([
+                'success' => false,
+                'message' => 'desconectado 😑'
+            ]);
+        } catch (TokenExpiredException $e) {
+            return response()->json([
+                'success' => true,
+                'message' => 'token expirado '
+            ]);
+        } catch (JWTException $exception) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Desculpe, o usuário não pode ser desconectado'
+            ]);
         }
     }
 }
