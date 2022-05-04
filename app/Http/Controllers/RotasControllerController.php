@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\RotasController;
+use App\Repository\Contracts\ICrompraSmsRepositorio;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -48,19 +49,16 @@ class RotasControllerController extends Controller
      * @param  \App\Models\RotasController  $rotasController
      * @return \Illuminate\Http\Response
      */
-    public function show(RotasController $rotasController)
+    public function show(ICrompraSmsRepositorio $repository)
     {
-        //
-        $rotas = $rotasController->getrotasAll();
-        return response()->json(['erro' => false, 'rotas' => $rotas ?? '']);
+        $rotas = $repository->getrotasAll();
+        return response()->json(['erro' => false, 'rotas' => $rotas ?? 'Vazio']);
     }
-
 
     public function edit(RotasController $rotasController)
     {
         //
     }
-
 
     public function update(Request $request, RotasController $rotasController)
     {

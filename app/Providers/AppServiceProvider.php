@@ -14,6 +14,10 @@ class AppServiceProvider extends ServiceProvider
     public function register()
     {
         //
+        $this->app->bind(
+            "App\Repository\Contracts\ICrompraSmsRepositorio",
+            "App\Repository\QueryBuild\CompraSmsRepositorioQueryBuild",
+        );
     }
 
     /**
@@ -23,6 +27,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        //
+
     }
 }
